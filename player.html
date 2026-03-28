@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL 2026 LIVE STREAMING</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Top Header & Logos */
+        .header-container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+        }
+
+        .ipl-logo {
+            width: 90px;
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+            background: #0f0f1a;
+            border-radius: 50%;
+            padding: 10px;
+        }
+
+        .match-card {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .team-logo-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 80%);
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .team-logo:hover {
+            transform: scale(1.1);
+        }
+
+        .vs-text {
+            font-size: 35px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 5px 15px rgba(255, 75, 43, 0.4);
+        }
+
+        .status-badge {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 1px solid #00ff88;
+            display: inline-block;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+
+        /* Unified Custom Player */
+        .video-container {
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border: 2px solid rgba(255,255,255,0.05);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Hide Live video initially */
+        #live-video {
+            display: none;
+        }
+
+        /* Glassmorphism Controls (NO SEEK BAR) */
+        .custom-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px 25px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .video-container:hover .custom-controls {
+            opacity: 1;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #ff4b2b;
+            border-color: #ff4b2b;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 75, 43, 0.6);
+        }
+
+        /* Glowing Live Indicator */
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .live-indicator.active {
+            color: white;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: #ff3333;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff3333;
+        }
+
+        .live-indicator.active .dot {
+            animation: pulse-red 1.5s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); }
+        }
+
+        /* Hide default controls forever */
+        video::-webkit-media-controls {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/8/84/Indian_Premier_League_Official_Logo.svg/250px-Indian_Premier_League_Official_Logo.svg.png" alt="IPL Logo" class="ipl-logo">
+        
+        <div class="match-card">
+            <div class="team-logo-box">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Royal_Challengers_Bangalore_2020.svg/200px-Royal_Challengers_Bangalore_2020.svg.png" alt="RCB" class="team-logo">
+                <h3>RCB</h3>
+            </div>
+            
+            <div class="vs-text">VS</div>
+            
+            <div class="team-logo-box">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/8/81/Sunrisers_Hyderabad.svg/200px-Sunrisers_Hyderabad.svg.png" alt="SRH" class="team-logo">
+                <h3>SRH</h3>
+            </div>
+        </div>
+
+        <div class="status-badge" id="timer-badge">WAITING FOR MATCH (7:30 PM)</div>
+    </div>
+
+    <div class="video-container" id="player-wrapper">
+        
+        <video id="promo-video" loop autoplay muted playsinline>
+            <source src="https://drive.google.com/uc?export=download&id=1ot_qgY88T09eglHl0VsEAQUOHlhWkgl4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <video id="live-video" playsinline></video>
+
+        <div class="custom-controls">
+            <div class="control-group">
+                <button class="btn" id="play-pause-btn"><i class="fas fa-play"></i></button>
+                <button class="btn" id="mute-btn"><i class="fas fa-volume-mute"></i></button>
+            </div>
+
+            <div class="live-indicator" id="live-status">
+                <div class="dot"></div> <span id="live-text">PROMO</span>
+            </div>
+
+            <div class="control-group">
+                <button class="btn" id="fullscreen-btn"><i class="fas fa-expand"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Elements ---
+        const promoVideo = document.getElementById('promo-video');
+        const liveVideo = document.getElementById('live-video');
+        const timerBadge = document.getElementById('timer-badge');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const muteBtn = document.getElementById('mute-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const playerWrapper = document.getElementById('player-wrapper');
+        const liveIndicator = document.getElementById('live-status');
+        const liveText = document.getElementById('live-text');
+
+        // Main state variable
+        let activeVideo = promoVideo; 
+        let isLiveActive = false;
+
+        // Force active video state
+        activeVideo.play().catch(e => console.log("Autoplay prevented by browser. User interaction needed."));
+        updatePlayPauseIcon();
+
+        // --- Timing & Switching Logic ---
+        function checkSchedule() {
+            const now = new Date();
+            const targetTime = new Date();
+            // Set Target Time: 19:30:00 (7:30 PM)
+            targetTime.setHours(19, 30, 0, 0);
+
+            if (now >= targetTime && !isLiveActive) {
+                switchToLiveStream();
+            } else if (!isLiveActive) {
+                // Countdown calculation
+                let diff = targetTime - now;
+                let hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                timerBadge.innerHTML = `LIVE IN: ${hours}H ${minutes}M ${seconds}S`;
+            }
+        }
+
+        function switchToLiveStream() {
+            isLiveActive = true;
+            
+            // UI Updates
+            timerBadge.innerHTML = "🔴 MATCH IS LIVE";
+            timerBadge.style.background = "rgba(255, 51, 51, 0.1)";
+            timerBadge.style.color = "#ff3333";
+            timerBadge.style.borderColor = "#ff3333";
+            
+            liveIndicator.classList.add('active');
+            liveText.innerText = "LIVE";
+
+            // Pause and Hide Promo
+            promoVideo.pause();
+            promoVideo.style.display = "none";
+
+            // Show and Set Live Video as Active
+            liveVideo.style.display = "block";
+            activeVideo = liveVideo;
+            
+            // Keep user's mute preference
+            activeVideo.muted = promoVideo.muted; 
+            updateMuteIcon();
+
+            // Start HLS Stream
+            startHlsStream();
+        }
+
+        function startHlsStream() {
+            const streamUrl = "http://116.90.120.151:8000/play/a0hb/index.m3u8";
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(streamUrl);
+                hls.attachMedia(liveVideo);
+                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                    liveVideo.play();
+                    updatePlayPauseIcon();
+                });
+            } else if (liveVideo.canPlayType('application/vnd.apple.mpegurl')) {
+                // Native Safari support
+                liveVideo.src = streamUrl;
+                liveVideo.addEventListener('loadedmetadata', function () {
+                    liveVideo.play();
+                    updatePlayPauseIcon();
+                });
+            }
+        }
+
+        // Check time every second
+        setInterval(checkSchedule, 1000);
+        checkSchedule();
+
+        // --- Custom Controls Logic ---
+        function updatePlayPauseIcon() {
+            if (activeVideo.paused) {
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        }
+
+        function updateMuteIcon() {
+            if (activeVideo.muted) {
+                muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+            } else {
+                muteBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            }
+        }
+
+        playPauseBtn.addEventListener('click', () => {
+            if (activeVideo.paused) {
+                activeVideo.play();
+            } else {
+                activeVideo.pause();
+            }
+            updatePlayPauseIcon();
+        });
+
+        // Event listeners to sync buttons if video is paused by other means
+        promoVideo.addEventListener('play', updatePlayPauseIcon);
+        promoVideo.addEventListener('pause', updatePlayPauseIcon);
+        liveVideo.addEventListener('play', updatePlayPauseIcon);
+        liveVideo.addEventListener('pause', updatePlayPauseIcon);
+
+        muteBtn.addEventListener('click', () => {
+            activeVideo.muted = !activeVideo.muted;
+            // Sync mute state across both videos so transition is smooth
+            promoVideo.muted = activeVideo.muted;
+            liveVideo.muted = activeVideo.muted;
+            updateMuteIcon();
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                if (playerWrapper.requestFullscreen) {
+                    playerWrapper.requestFullscreen();
+                } else if (playerWrapper.webkitRequestFullscreen) {
+                    playerWrapper.webkitRequestFullscreen();
+                } else if (playerWrapper.msRequestFullscreen) {
+                    playerWrapper.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
